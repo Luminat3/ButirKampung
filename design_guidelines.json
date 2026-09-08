@@ -1,0 +1,148 @@
+{
+  "app_name": "TelorKu - Manajemen Telur Kampung",
+  "personality": "3 Editorial Mobile LIGHT",
+  "personality_one_liner": "Calm, organic, and trustworthy small-business management for free-range chicken farmers.",
+  "color": {
+    "surface": "#FDFBF7",
+    "onSurface": "#2C2A29",
+    "surfaceSecondary": "#F4EFE6",
+    "onSurfaceSecondary": "#4A4745",
+    "surfaceTertiary": "#E9E3D5",
+    "onSurfaceTertiary": "#635F5C",
+    "surfaceInverse": "#1C1B1A",
+    "onSurfaceInverse": "#FDFBF7",
+    "brand": "#8C6D48",
+    "brandPrimary": "#735332",
+    "onBrandPrimary": "#FFFFFF",
+    "brandSecondary": "#A68661",
+    "onBrandSecondary": "#2C2A29",
+    "brandTertiary": "#EFEAE0",
+    "onBrandTertiary": "#594026",
+    "success": "#4A6B52",
+    "onSuccess": "#FFFFFF",
+    "warning": "#A67C37",
+    "onWarning": "#FFFFFF",
+    "error": "#9E473D",
+    "onError": "#FFFFFF",
+    "info": "#4A6370",
+    "onInfo": "#FFFFFF",
+    "border": "#E2DCB",
+    "borderStrong": "#C8BEAB",
+    "divider": "#EBE5D8",
+    "muted": "#7A7570",
+    "onBrand": "#FFFFFF"
+  },
+  "typography": {
+    "displayFontFamily": "Playfair Display",
+    "textFontFamily": "DM Sans",
+    "scale": {
+      "sm": 12,
+      "base": 14,
+      "lg": 16,
+      "xl": 20,
+      "2xl": 24
+    }
+  },
+  "spacing": {
+    "rule": "Generous magazine-like editorial spacing with comfortable touch targets and clear vertical hierarchy.",
+    "xs": 4,
+    "sm": 8,
+    "md": 12,
+    "lg": 16,
+    "xl": 24,
+    "2xl": 32,
+    "3xl": 48
+  },
+  "radius_tokens": {
+    "sm": 6,
+    "md": 12,
+    "lg": 20,
+    "pill": 999
+  },
+  "shadow_tier": "0",
+  "navigation": "bottom_tabs",
+  "icon_set": "Ionicons",
+  "glassmorphism": {
+    "enabled": false,
+    "do's": [
+      "Use editorial calm surfaces",
+      "Clean 1pt borders",
+      "Warm paper tones"
+    ],
+    "dont's": [
+      "No heavy glass or neon dark mode",
+      "No floating shadows"
+    ]
+  },
+  "platform_libraries": {
+    "glass": {
+      "ios": "expo-glass-effect",
+      "android": "expo-blur",
+      "low_end_android_fallback": "solid surfaceSecondary"
+    },
+    "image": "expo-image",
+    "blur": "expo-blur",
+    "bottom_sheet": "@gorhom/bottom-sheet",
+    "animation": "react-native-reanimated",
+    "gesture": "react-native-gesture-handler"
+  },
+  "screens": [
+    {
+      "name": "Home / Dashboard",
+      "purpose": "Provide immediate overview of today's collection, sales, profit, and quick actions.",
+      "states": {
+        "loading": "Centered warm spinner with editorial greeting",
+        "empty": "Warm illustrated empty state inviting the first egg collection or sale record",
+        "error": "Readable banner with Retry button for local storage"
+      },
+      "layout": "Top greeting header with date, Today summary metrics card (eggs, revenue, profit), Quick action bar (Catat Jual, Catat Pakan, Koleksi Telur), Monthly summary card, and Recent transactions list."
+    },
+    {
+      "name": "Penjualan (Sales)",
+      "purpose": "Record and manage daily egg sales transactions at Rp 3.000 fixed price.",
+      "states": {
+        "loading": "Skeleton sales list",
+        "empty": "Warm prompt to record the first sale of the day",
+        "error": "Error retry banner"
+      },
+      "layout": "Filter bar by date range & buyer, primary sticky button 'Catat Penjualan Baru', list of sales items with edit/delete options and auto-calculated totals."
+    },
+    {
+      "name": "Produksi & Ayam (Flock Tracker)",
+      "purpose": "Track active laying chickens and daily egg collections to monitor farm productivity.",
+      "states": {
+        "loading": "Spinner",
+        "empty": "Prompt to add active chicken count",
+        "error": "Error banner"
+      },
+      "layout": "Active flock counter card, daily collection log list with date & count, productivity ratio indicator (eggs/chicken/day)."
+    },
+    {
+      "name": "Keuangan (Expenses)",
+      "purpose": "Record and categorize daily operational costs like feed, vitamins, and medicine.",
+      "states": {
+        "loading": "Spinner",
+        "empty": "Prompt to log first operational expense",
+        "error": "Error banner"
+      },
+      "layout": "Category filter chips (Pakan, Vitamin, Obat, Lainnya), expense list with item details, quantity, cost, and 'Tambah Biaya' FAB."
+    },
+    {
+      "name": "Laporan & Pembeli (Report & Buyers)",
+      "purpose": "Generate monthly profit/loss reports with category breakdowns and manage buyer profiles.",
+      "states": {
+        "loading": "Spinner",
+        "empty": "No report data for selected month",
+        "error": "Error banner"
+      },
+      "layout": "Tabbed view for 'Laporan Bulanan' (Month selector, summary stats, PDF/Share export) and 'Daftar Pembeli' (Buyer profile cards with purchase history)."
+    }
+  ],
+  "images": {
+    "hero_basket": {
+      "url": "https://images.unsplash.com/photo-1521733345712-97d259ef774f",
+      "alt": "Fresh organic eggs in a rustic basket"
+    }
+  },
+  "instructions_to_main_agent": "Build a fully functional offline-first React Native Expo app in Bahasa Indonesia for TelorKu small business egg farmer. Ensure AsyncStorage is used for robust local persistence of sales, expenses, flock records, and buyers. Fixed egg price is Rp 3.000 per egg with auto-calculation. Implement daily/monthly profit indicators (green/red), monthly report generator with PDF/Share simulation, and active flock productivity tracker. Follow Editorial Mobile LIGHT personality with warm paper tones (#FDFBF7), Playfair Display headings, DM Sans body, and 1pt clean borders. Ensure all touch targets are >= 44x44pt and safe areas are respected."
+}
