@@ -16,6 +16,7 @@ Pemilik usaha telur skala kecil, tidak tech-savvy, butuh input cepat dan ringkas
 - 2026-09-08: Laporan Tahunan (ringkasan setahun, rincian + grafik batang per bulan, PDF tahunan) dan Laporan Rentang Tanggal (dari–sampai tanggal spesifik, PDF sesuai rentang). testID pada tab bar, FAB, quick actions, tombol laporan, dan seluruh kontrol laporan baru.
 - 2026-09-08: Pengingat koleksi harian (notifikasi lokal terjadwal via expo-notifications, toggle + atur jam di tab Produksi, channel Android `pengingat-telur`, izin Android 13+/iOS ditangani, hanya berfungsi di build native), grafik batang pada laporan rentang tanggal (per hari jika ≤31 hari, per bulan jika lebih; PDF menyertakan tabel rincian), pemilih tanggal kalender visual (react-native-calendars, locale Indonesia, inline di sheet laporan untuk mode Bulanan & Rentang; tahun pakai stepper −/+).
 - 2026-09-08: Kalender visual (komponen `InlineCalendar`) juga dipakai di field Tanggal pada form Penjualan/Biaya/Koleksi Telur, menggantikan input teks YYYY-MM-DD.
+- 2026-09-08: Bug fix — sheet form kedip tutup-buka saat Simpan di Android (Alert validasi native bertabrakan dengan window Modal). Validasi form kini error inline di dalam sheet (`form-error`/`flock-error`). Keyboard: migrasi ke react-native-keyboard-controller (KeyboardProvider di root, KeyboardAwareScrollView di FormSheet, KAV library di FlockSheet).
 
 ## Backlog
 - P0: —

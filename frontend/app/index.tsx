@@ -5,7 +5,6 @@ import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  KeyboardAvoidingView,
   Linking,
   Modal,
   Platform,
@@ -20,6 +19,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Calendar, LocaleConfig } from "react-native-calendars";
 import type { DateData } from "react-native-calendars/src/types";
+import { KeyboardAwareScrollView, KeyboardAvoidingView } from "react-native-keyboard-controller";
 
 import { cancelDailyReminder, ensureReminderPermission, scheduleDailyReminder } from "@/src/notifications";
 
@@ -119,6 +119,8 @@ const useStyles = makeStyles((colors) => StyleSheet.create({
   fieldMulti: { minHeight: 72, paddingTop: 13, textAlignVertical: "top" },
   pickerField: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   pickerText: { color: colors.onSurface, fontSize: 15, fontWeight: "600" },
+  errorBox: { flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: colors.surfaceTertiary, borderRadius: 10, padding: 12, marginTop: 16, borderWidth: 1, borderColor: colors.error },
+  errorText: { color: colors.error, fontSize: 13, fontWeight: "600", flex: 1 },
   sheetActions: { flexDirection: "row", gap: 10, marginTop: 24, marginBottom: 20 },
   halfButton: { flex: 1 },
   buyerOption: { backgroundColor: colors.surfaceSecondary, borderWidth: 1, borderColor: colors.border, borderRadius: 10, padding: 11, marginRight: 8, minWidth: 112 },
@@ -174,37 +176,39 @@ function FormSheet({ mode, visible, onClose, data, initialSale, initialExpense, 
   const [unit, setUnit] = useState("kg");
   const [cost, setCost] = useState("");
   const [pickingDate, setPickingDate] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (!visible) return;
     setDate(initialSale?.date ?? initialExpense?.date ?? initialProduction?.date ?? todayKey());
     setName(initialBuyer?.name ?? initialSale?.buyerName ?? ""); setBuyerId(initialSale?.buyerId ?? ""); setBuyerSearch(initialSale?.buyerName ?? ""); setEggs(initialSale ? String(initialSale.eggs) : initialProduction ? String(initialProduction.eggsCollected) : "");
-    setPhone(initialBuyer?.phone ?? ""); setAddress(initialBuyer?.address ?? ""); setCategory(initialExpense?.category ?? data.categories[0]); setItemName(initialExpense?.itemName ?? ""); setItemSearch(initialExpense?.itemName ?? ""); setQuantity(initialExpense?.quantity ?? ""); setUnit(initialExpense?.unit ?? "kg"); setCost(initialExpense ? String(initialExpense.totalCost) : ""); setNewCategory(""); setPickingDate(false);
+    setPhone(initialBuyer?.phone ?? ""); setAddress(initialBuyer?.address ?? ""); setCategory(initialExpense?.category ?? data.categories[0]); setItemName(initialExpense?.itemName ?? ""); setItemSearch(initialExpense?.itemName ?? ""); setQuantity(initialExpense?.quantity ?? ""); setUnit(initialExpense?.unit ?? "kg"); setCost(initialExpense ? String(initialExpense.totalCost) : ""); setNewCategory(""); setPickingDate(false); setError("");
   }, [visible, initialSale, initialExpense, initialProduction, initialBuyer, data.categories, data.activeChickens]);
 
   const title = mode === "sale" ? (initialSale ? "Edit Penjualan" : "Catat Penjualan") : mode === "expense" ? (initialExpense ? "Edit Biaya" : "Tambah Biaya") : mode === "production" ? "Koleksi Telur" : (initialBuyer ? "Edit Pembeli" : "Tambah Pembeli");
   const buyerOptions = useMemo(() => data.buyers.filter((buyer) => buyer.name.toLowerCase().includes(buyerSearch.toLowerCase())), [data.buyers, buyerSearch]);
   const itemOptions = useMemo(() => { const selectedCategory = newCategory.trim() || category; const seen = new Set<string>(); return data.expenses.filter((expense) => expense.category === selectedCategory && expense.itemName.toLowerCase().includes(itemSearch.toLowerCase())).map((expense) => expense.itemName).filter((item) => { if (seen.has(item.toLowerCase())) return false; seen.add(item.toLowerCase()); return true; }).slice(0, 8); }, [data.expenses, category, newCategory, itemSearch]);
   const submit = async () => {
-    if (!date) return Alert.alert("Tanggal belum diisi", "Masukkan tanggal terlebih dahulu.");
+    setError("");
+    if (!date) return setError("Masukkan tanggal terlebih dahulu.");
     if (mode === "sale") {
-      const qty = Number(eggs); if (!name.trim() || !qty || qty < 1) return Alert.alert("Data belum lengkap", "Isi nama pembeli dan jumlah telur.");
+      const qty = Number(eggs); if (!name.trim() || !qty || qty < 1) return setError("Isi nama pembeli dan jumlah telur.");
       await onSave({ id: initialSale?.id ?? uid(), date, buyerId: buyerId || undefined, buyerName: name.trim(), eggs: qty, total: qty * EGG_PRICE }, mode);
     } else if (mode === "expense") {
-      const totalCost = Number(cost); if (!itemName.trim() || !totalCost || totalCost < 1) return Alert.alert("Data belum lengkap", "Isi nama item dan total biaya.");
+      const totalCost = Number(cost); if (!itemName.trim() || !totalCost || totalCost < 1) return setError("Isi nama item dan total biaya.");
       await onSave({ id: initialExpense?.id ?? uid(), date, category: newCategory.trim() || category, itemName: itemName.trim(), quantity: quantity || "-", unit: unit || "-", totalCost }, mode);
     } else if (mode === "production") {
-      const collected = Number(eggs); const flock = data.activeChickens; if (!collected || collected < 0) return Alert.alert("Data belum lengkap", "Isi jumlah telur terkumpul."); if (!flock || flock < 1) return Alert.alert("Atur ayam aktif dulu", "Pisahkan jumlah ayam yang sudah bertelur melalui tombol Atur ayam aktif bertelur.");
+      const collected = Number(eggs); const flock = data.activeChickens; if (!collected || collected < 0) return setError("Isi jumlah telur terkumpul."); if (!flock || flock < 1) return setError("Atur dulu jumlah ayam aktif bertelur lewat tombol 'Atur ayam aktif bertelur'.");
       await onSave({ id: initialProduction?.id ?? uid(), date, eggsCollected: collected, activeChickens: flock }, mode);
     } else {
-      if (!name.trim()) return Alert.alert("Nama belum diisi", "Isi nama pembeli.");
+      if (!name.trim()) return setError("Isi nama pembeli.");
       await onSave({ id: initialBuyer?.id ?? uid(), name: name.trim(), phone: phone.trim(), address: address.trim() }, mode);
     }
     onClose();
   };
-  return <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
-    <KeyboardAvoidingView style={styles.modalBackdrop} behavior={Platform.OS === "ios" ? "padding" : "height"}>
-      <View style={styles.sheet}><View style={styles.handle} /><ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled"><Text style={styles.sheetTitle}>{title}</Text>
+  return <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose} statusBarTranslucent>
+    <View style={styles.modalBackdrop}>
+      <View style={styles.sheet}><View style={styles.handle} /><KeyboardAwareScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" bottomOffset={24}><Text style={styles.sheetTitle}>{title}</Text>
         {mode !== "buyer" ? <><Text style={styles.fieldLabel}>Tanggal</Text><Pressable testID="form-date-field" onPress={() => setPickingDate(!pickingDate)} style={({ pressed }) => [styles.field, styles.pickerField, pressed && styles.pressed]}><Text style={styles.pickerText}>{formatDate(date)}</Text><Icon name="calendar-outline" size={18} color={colors.brandPrimary} /></Pressable>{pickingDate ? <InlineCalendar value={date} onSelect={(picked) => { setDate(picked); setPickingDate(false); }} onClose={() => setPickingDate(false)} /> : null}</> : null}
         {mode === "sale" ? <>
           <Text style={styles.fieldLabel}>Cari pembeli tersimpan</Text><View style={styles.searchBox}><Icon name="search-outline" size={19} color={colors.muted} /><TextInput testID="buyer-search" value={buyerSearch} onChangeText={setBuyerSearch} placeholder="Ketik nama pembeli..." placeholderTextColor={colors.muted} style={styles.searchInput} /><Pressable testID="clear-buyer-search" onPress={() => setBuyerSearch("")} hitSlop={8}><Icon name="close-circle" size={18} color={colors.muted} /></Pressable></View>{buyerSearch.trim() ? <View style={styles.searchResults}>{buyerOptions.length ? buyerOptions.slice(0, 6).map((buyer) => <Pressable key={buyer.id} onPress={() => { setBuyerId(buyer.id); setName(buyer.name); setBuyerSearch(buyer.name); }} style={({ pressed }) => [styles.searchResultRow, pressed && styles.pressed]}><Icon name="person-circle-outline" size={27} color={colors.brandPrimary} /><View style={styles.searchResultContent}><Text style={styles.searchResultTitle}>{buyer.name}</Text><Text style={styles.searchResultMeta}>{buyer.phone || "Pembeli tersimpan"}</Text></View><Icon name="arrow-forward" size={17} color={colors.muted} /></Pressable>) : <Text style={styles.searchEmpty}>Tidak ada pembeli yang cocok.</Text>}</View> : null}<Pressable onPress={() => { setBuyerId(""); setName(""); setBuyerSearch(""); }} style={styles.buyerOption}><Text style={styles.buyerName}>+ Pembeli baru</Text></Pressable>
@@ -222,17 +226,18 @@ function FormSheet({ mode, visible, onClose, data, initialSale, initialExpense, 
         </> : null}
         {mode === "production" ? <><View style={styles.reportCard}><Text style={styles.itemMeta}>Ayam aktif bertelur saat ini</Text><Text style={styles.bigReportValue}>{data.activeChickens || 0} ekor</Text><Text style={styles.itemMeta}>Jumlah ini diatur terpisah dari koleksi telur.</Text></View><Text style={styles.fieldLabel}>Telur terkumpul hari ini</Text><TextInput value={eggs} onChangeText={setEggs} placeholder="Contoh: 9" keyboardType="numeric" placeholderTextColor={colors.muted} style={styles.field} /></> : null}
         {mode === "buyer" ? <><Text style={styles.fieldLabel}>Nama pembeli</Text><TextInput value={name} onChangeText={setName} placeholder="Contoh: Bu Sari" placeholderTextColor={colors.muted} style={styles.field} /><Text style={styles.fieldLabel}>Nomor telepon (opsional)</Text><TextInput value={phone} onChangeText={setPhone} keyboardType="phone-pad" placeholder="08..." placeholderTextColor={colors.muted} style={styles.field} /><Text style={styles.fieldLabel}>Alamat (opsional)</Text><TextInput value={address} onChangeText={setAddress} placeholder="Alamat pembeli" placeholderTextColor={colors.muted} multiline style={[styles.field, styles.fieldMulti]} /></> : null}
+        {error ? <View style={styles.errorBox} testID="form-error"><Icon name="alert-circle-outline" size={18} color={colors.error} /><Text style={styles.errorText}>{error}</Text></View> : null}
         <View style={styles.sheetActions}><Pressable onPress={onClose} style={({ pressed }) => [styles.outlineButton, styles.halfButton, pressed && styles.pressed]}><Text style={styles.outlineText}>Batal</Text></Pressable><Pressable testID={`save-${mode}`} onPress={submit} style={({ pressed }) => [styles.primaryButton, styles.halfButton, pressed && styles.pressed]}><Text style={styles.primaryButtonText}>Simpan</Text></Pressable></View>
-      </ScrollView></View>
-    </KeyboardAvoidingView>
+      </KeyboardAwareScrollView></View>
+    </View>
   </Modal>;
 }
 
 function FlockSheet({ visible, current, onClose, onSave }: { visible: boolean; current: number; onClose: () => void; onSave: (value: number) => void }) {
-  const styles = useStyles(); const { colors } = useTheme(); const [value, setValue] = useState("");
-  useEffect(() => { if (visible) setValue(current ? String(current) : ""); }, [visible, current]);
-  const submit = () => { const flock = Number(value); if (!flock || flock < 1) return Alert.alert("Jumlah belum diisi", "Masukkan minimal 1 ayam yang sudah bertelur."); onSave(flock); onClose(); };
-  return <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}><KeyboardAvoidingView style={styles.modalBackdrop} behavior={Platform.OS === "ios" ? "padding" : "height"}><View style={styles.sheet}><View style={styles.handle} /><Text style={styles.sheetTitle}>Atur Ayam Bertelur</Text><Text style={styles.subtitle}>Pisahkan ayam dewasa yang sudah bertelur dari ayam yang masih tumbuh.</Text><Text style={styles.fieldLabel}>Jumlah ayam aktif bertelur</Text><TextInput autoFocus value={value} onChangeText={setValue} placeholder="Contoh: 12" keyboardType="numeric" placeholderTextColor={colors.muted} style={styles.field} /><View style={styles.sheetActions}><Pressable onPress={onClose} style={({ pressed }) => [styles.outlineButton, styles.halfButton, pressed && styles.pressed]}><Text style={styles.outlineText}>Batal</Text></Pressable><Pressable onPress={submit} style={({ pressed }) => [styles.primaryButton, styles.halfButton, pressed && styles.pressed]}><Text style={styles.primaryButtonText}>Simpan</Text></Pressable></View></View></KeyboardAvoidingView></Modal>;
+  const styles = useStyles(); const { colors } = useTheme(); const [value, setValue] = useState(""); const [error, setError] = useState("");
+  useEffect(() => { if (visible) { setValue(current ? String(current) : ""); setError(""); } }, [visible, current]);
+  const submit = () => { const flock = Number(value); if (!flock || flock < 1) return setError("Masukkan minimal 1 ayam yang sudah bertelur."); onSave(flock); onClose(); };
+  return <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}><KeyboardAvoidingView style={styles.modalBackdrop} behavior={Platform.OS === "ios" ? "padding" : "height"}><View style={styles.sheet}><View style={styles.handle} /><Text style={styles.sheetTitle}>Atur Ayam Bertelur</Text><Text style={styles.subtitle}>Pisahkan ayam dewasa yang sudah bertelur dari ayam yang masih tumbuh.</Text><Text style={styles.fieldLabel}>Jumlah ayam aktif bertelur</Text><TextInput autoFocus value={value} onChangeText={setValue} placeholder="Contoh: 12" keyboardType="numeric" placeholderTextColor={colors.muted} style={styles.field} />{error ? <View style={styles.errorBox} testID="flock-error"><Icon name="alert-circle-outline" size={18} color={colors.error} /><Text style={styles.errorText}>{error}</Text></View> : null}<View style={styles.sheetActions}><Pressable onPress={onClose} style={({ pressed }) => [styles.outlineButton, styles.halfButton, pressed && styles.pressed]}><Text style={styles.outlineText}>Batal</Text></Pressable><Pressable onPress={submit} style={({ pressed }) => [styles.primaryButton, styles.halfButton, pressed && styles.pressed]}><Text style={styles.primaryButtonText}>Simpan</Text></Pressable></View></View></KeyboardAvoidingView></Modal>;
 }
 
 function InlineCalendar({ value, onSelect, onClose }: { value: string; onSelect: (date: string) => void; onClose: () => void }) {
