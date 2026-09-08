@@ -5,10 +5,11 @@ export type Sale = { id: string; date: string; buyerId?: string; buyerName: stri
 export type Buyer = { id: string; name: string; phone: string; address: string };
 export type Expense = { id: string; date: string; category: string; itemName: string; quantity: string; unit: string; totalCost: number };
 export type Production = { id: string; date: string; eggsCollected: number; activeChickens: number };
-export type AppData = { sales: Sale[]; buyers: Buyer[]; expenses: Expense[]; productions: Production[]; categories: string[]; activeChickens: number };
+export type ReminderSettings = { enabled: boolean; time: string };
+export type AppData = { sales: Sale[]; buyers: Buyer[]; expenses: Expense[]; productions: Production[]; categories: string[]; activeChickens: number; reminder: ReminderSettings };
 
 const KEY = "telorku_data_v1";
-export const emptyData: AppData = { sales: [], buyers: [], expenses: [], productions: [], categories: ["Pakan", "Vitamin", "Obat", "Lainnya"], activeChickens: 0 };
+export const emptyData: AppData = { sales: [], buyers: [], expenses: [], productions: [], categories: ["Pakan", "Vitamin", "Obat", "Lainnya"], activeChickens: 0, reminder: { enabled: false, time: "16:00" } };
 
 export async function loadData(): Promise<AppData> {
   try {

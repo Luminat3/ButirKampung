@@ -16,7 +16,8 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#000000"
       },
-      "package": "com.emergent.telurkampung.yziw89"
+      "package": "com.emergent.telurkampung.yziw89",
+      "permissions": ["POST_NOTIFICATIONS"]
     },
     "web": {
       "bundler": "metro",
@@ -39,7 +40,14 @@
       "expo-secure-store",
       "expo-web-browser",
       "expo-status-bar",
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "expo-notifications",
+        {
+          "color": "#735332",
+          "defaultChannel": "pengingat-telur"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
